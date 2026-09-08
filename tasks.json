@@ -1,0 +1,134 @@
+[
+  {
+    "instance_id": "SkyworkAI__Skywork-Skills",
+    "repository": "SkyworkAI/Skywork-Skills",
+    "base_commit": "c8c6aeb742c3d6a2b728992142796702464b6fce",
+    "license": "MIT"
+  },
+  {
+    "instance_id": "TFboy1__academic-paper-writer",
+    "repository": "TFboy1/academic-paper-writer",
+    "base_commit": "cf3dec4b829c50ac2cb2b12b62cebcb1178f3b93",
+    "license": "MIT"
+  },
+  {
+    "instance_id": "dama-cyber__magic-distillation",
+    "repository": "dama-cyber/magic-distillation",
+    "base_commit": "1863288e72b8d7fcaca79c9fd1b70732169a1854",
+    "license": "MIT"
+  },
+  {
+    "instance_id": "tmcknight__Movie-and-TV-Show-Search-Alfred-Workflow",
+    "repository": "tmcknight/Movie-and-TV-Show-Search-Alfred-Workflow",
+    "base_commit": "bbe4d6e46db56c51ade806a393568c8d4fb8ad1b",
+    "license": "MIT"
+  },
+  {
+    "instance_id": "avbor__HomeAssistantConfig",
+    "repository": "avbor/HomeAssistantConfig",
+    "base_commit": "ad0ede48fe7caad1c8167ed3efb9f09c2bc6c8f2",
+    "license": "Unlicense"
+  },
+  {
+    "instance_id": "DreamWall-Animation__dwpicker",
+    "repository": "DreamWall-Animation/dwpicker",
+    "base_commit": "8b7d11b7d4ed242f60757cae27f250de688f1ab6",
+    "license": "MIT"
+  },
+  {
+    "instance_id": "rivitna__Malware",
+    "repository": "rivitna/Malware",
+    "base_commit": "a46fee5c0f988450097a542130911665a12a5f26",
+    "license": "MIT"
+  },
+  {
+    "instance_id": "coleam00__skills",
+    "repository": "coleam00/skills",
+    "base_commit": "fb2e876f057c5356d6603ba0c52d6b4418d893ba",
+    "license": "MIT"
+  },
+  {
+    "instance_id": "fblissjr__ComfyUI-QwenImageWanBridge",
+    "repository": "fblissjr/ComfyUI-QwenImageWanBridge",
+    "base_commit": "ac4e99ed87a4174d1dbbfadcbe7ba2ee524157ab",
+    "license": "MIT"
+  },
+  {
+    "instance_id": "THUNLP-MT__StreamingBench",
+    "repository": "THUNLP-MT/StreamingBench",
+    "base_commit": "89299232c4cc1cc3721951173c5f107b48cf6877",
+    "license": "MIT"
+  },
+  {
+    "instance_id": "autopkg__grahampugh-recipes",
+    "repository": "autopkg/grahampugh-recipes",
+    "base_commit": "11ffe83ed528efc635886892f8dd65a690a71146",
+    "license": "Apache-2.0"
+  },
+  {
+    "instance_id": "sleeepeer__PoisonedRAG",
+    "repository": "sleeepeer/PoisonedRAG",
+    "base_commit": "f660d72174f06b13fae5163ce656e7b235db858f",
+    "license": "MIT"
+  },
+  {
+    "instance_id": "peterhinch__micropython-mqtt",
+    "repository": "peterhinch/micropython-mqtt",
+    "base_commit": "c2c19c926bbcfadfbb5c3b2b9a00d3f31b59972d",
+    "license": "MIT"
+  },
+  {
+    "instance_id": "sirnfs__OptionSuite",
+    "repository": "sirnfs/OptionSuite",
+    "base_commit": "388b130b7267199bc7caee246df61a4835d11f91",
+    "license": "MIT"
+  },
+  {
+    "instance_id": "LynnReal-AI__BiWM",
+    "repository": "LynnReal-AI/BiWM",
+    "base_commit": "2dbf8dac1cf58ead3e6534a80ceca6d9ff5dad8f",
+    "license": "Apache-2.0"
+  },
+  {
+    "instance_id": "sunshy-1__LLM4GraphTopology",
+    "repository": "sunshy-1/LLM4GraphTopology",
+    "base_commit": "366d6774622906d46b61e529ccd4e3b71641ed8b",
+    "license": "MIT"
+  },
+  {
+    "instance_id": "Mick235711__Beijing-Subway-Tools",
+    "repository": "Mick235711/Beijing-Subway-Tools",
+    "base_commit": "1aed9c2963b681f487bccd01358400ee4f595d8a",
+    "license": "MIT"
+  },
+  {
+    "instance_id": "meituan-longcat__WBench",
+    "repository": "meituan-longcat/WBench",
+    "base_commit": "cbe567c15b0764a7cb8fc0cb252e07ef2558e5e6",
+    "license": "MIT"
+  },
+  {
+    "instance_id": "dongshuyan__compass-skills",
+    "repository": "dongshuyan/compass-skills",
+    "base_commit": "1b2e556ce6f293ba12e95e18d51995d6a969d52f",
+    "license": "MIT"
+  },
+  {
+    "instance_id": "rbenrax__upyOS",
+    "repository": "rbenrax/upyOS",
+    "base_commit": "fd6ac10f6aca6f168fd23762e41f51d76b99a94b",
+    "license": "MIT"
+  },
+  {
+    "instance_id": "jiajun613__Efficient-WAM",
+    "repository": "jiajun613/Efficient-WAM",
+    "base_commit": "5851bae882fa95dff80c0d142fe7eb7c3fd7a37a",
+    "license": "Apache-2.0"
+  },
+  {
+    "instance_id": "TsingZ0__HtFLlib",
+    "repository": "TsingZ0/HtFLlib",
+    "base_commit": "e959261d906f40377410bc4d9d13ba3f6af56782",
+    "license": "Apache-2.0"
+  }
+]
