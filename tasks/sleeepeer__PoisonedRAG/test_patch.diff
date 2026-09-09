@@ -1,0 +1,34 @@
+diff --git a/tests_verify/test_characterization.py b/tests_verify/test_characterization.py
+new file mode 100644
+index 0000000..8d5636c
+--- /dev/null
++++ b/tests_verify/test_characterization.py
+@@ -0,0 +1,28 @@
++import pytest
++
++from src.contriever_src.normalize_text import normalize
++
++
++@pytest.mark.parametrize(
++    "text",
++    [
++        "",
++        "Already ASCII: A, an, the!",
++        "Crème Brûlée - déjà vu!",
++        "Cafe\u0301",
++        "\tCafé \n",
++    ],
++)
++def test_normalize_preserves_text_without_supported_unicode_punctuation(text):
++    assert normalize(text) == text
++
++
++@pytest.mark.parametrize(
++    ("text", "expected"),
++    [
++        ("Crème Brûlée — déjà vu!", "Crème Brûlée - déjà vu!"),
++        ("before—after", "before-after"),
++    ],
++)
++def test_normalize_replaces_em_dash_with_ascii_hyphen(text, expected):
++    assert normalize(text) == expected

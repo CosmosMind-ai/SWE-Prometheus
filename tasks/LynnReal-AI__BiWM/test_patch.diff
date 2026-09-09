@@ -1,0 +1,16 @@
+diff --git a/tests_verify/test_characterization.py b/tests_verify/test_characterization.py
+new file mode 100644
+index 0000000..cbd11a9
+--- /dev/null
++++ b/tests_verify/test_characterization.py
+@@ -0,0 +1,10 @@
++import ltx23
++import pipelines
++
++
++def test_ltx23_package_imports_with_documented_description():
++    assert ltx23.__doc__ == "LTX-Video 2.3 components used by the BiWM training pipelines."
++
++
++def test_pipelines_package_imports():
++    assert pipelines.__name__ == "pipelines"

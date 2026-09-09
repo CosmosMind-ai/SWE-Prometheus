@@ -1,0 +1,22 @@
+diff --git a/tests_verify/test_characterization.py b/tests_verify/test_characterization.py
+new file mode 100644
+index 0000000..d27a7de
+--- /dev/null
++++ b/tests_verify/test_characterization.py
+@@ -0,0 +1,16 @@
++import tempfile
++from importlib import import_module
++
++
++latex_to_omml_module = import_module("ocr_kb.scripts.latex_to_omml")
++
++
++def test_latex_to_omml_returns_none_when_pandoc_is_unavailable(
++    monkeypatch, tmp_path
++):
++    monkeypatch.setenv("PATH", str(tmp_path))
++    monkeypatch.setattr(tempfile, "tempdir", str(tmp_path))
++
++    result = latex_to_omml_module.latex_to_omml("x^2")
++
++    assert result is None

@@ -1,0 +1,83 @@
+diff --git a/tests_verify/test_characterization.py b/tests_verify/test_characterization.py
+new file mode 100644
+index 0000000..48db1f4
+--- /dev/null
++++ b/tests_verify/test_characterization.py
+@@ -0,0 +1,77 @@
++import importlib
++import importlib.util
++import sys
++import types
++
++import pytest
++
++
++if importlib.util.find_spec("torch") is None:
++    torch_stub = types.ModuleType("torch")
++
++    class Tensor:
++        pass
++
++    torch_stub.Tensor = Tensor
++    sys.modules["torch"] = torch_stub
++
++
++z_image_encoder = importlib.import_module("nodes.z_image_encoder")
++
++
++@pytest.mark.parametrize(
++    ("text", "expected_count"),
++    [
++        ("", 1),
++        ("abc", 1),
++        ("abcd", 2),
++        ("abcdefgh", 3),
++        ("a" * 20, 6),
++    ],
++)
++def test_count_tokens_fallback_estimate(monkeypatch, text, expected_count):
++    monkeypatch.setattr(z_image_encoder, "get_tokenizer", lambda: None)
++
++    assert z_image_encoder.count_tokens(text) == (expected_count, False)
++
++
++def test_count_tokens_uses_tokenizer_without_special_tokens(monkeypatch):
++    calls = []
++
++    class Tokenizer:
++        def encode(self, text, add_special_tokens):
++            calls.append((text, add_special_tokens))
++            return [11, 22, 33]
++
++    monkeypatch.setattr(z_image_encoder, "get_tokenizer", lambda: Tokenizer())
++
++    assert z_image_encoder.count_tokens("sample text") == (3, True)
++    assert calls == [("sample text", False)]
++
++
++def test_count_tokens_falls_back_when_tokenizer_encode_raises(monkeypatch):
++    class FailingTokenizer:
++        def encode(self, text, add_special_tokens):
++            raise ValueError("tokenization failed")
++
++    monkeypatch.setattr(
++        z_image_encoder,
++        "get_tokenizer",
++        lambda: FailingTokenizer(),
++    )
++
++    assert z_image_encoder.count_tokens("abcdefgh") == (3, False)
++
++
++def test_filter_embeddings_by_mask_preserves_empty_inputs():
++    empty_conditioning = []
++
++    assert z_image_encoder.filter_embeddings_by_mask(None) is None
++    assert (
++        z_image_encoder.filter_embeddings_by_mask(empty_conditioning)
++        is empty_conditioning
++    )
++
++
++def test_documented_reference_token_limit_is_512():
++    assert z_image_encoder.REFERENCE_MAX_TOKENS == 512

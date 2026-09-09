@@ -1,0 +1,20 @@
+{
+ "instance_id": "sunshy-1__LLM4GraphTopology",
+ "construction": {
+  "repo_pinned": true,
+  "base_evidence_collected": true,
+  "base_scored_by_teachers": true,
+  "verify_patch_generated": true,
+  "verify_patch_green_on_base": true
+ },
+ "validation": {
+  "gate_strength": "blind",
+  "mutation_tested": true,
+  "mutations_injected": 1044,
+  "behavior_verifiable": false
+ },
+ "usable_for": {
+  "six_dimension_scoring": true,
+  "behavior_preservation_claim": false
+ }
+}

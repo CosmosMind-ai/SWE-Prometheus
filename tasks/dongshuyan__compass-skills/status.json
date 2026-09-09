@@ -1,0 +1,20 @@
+{
+ "instance_id": "dongshuyan__compass-skills",
+ "construction": {
+  "repo_pinned": true,
+  "base_evidence_collected": true,
+  "base_scored_by_teachers": true,
+  "verify_patch_generated": true,
+  "verify_patch_green_on_base": true
+ },
+ "validation": {
+  "gate_strength": "detected",
+  "mutation_tested": true,
+  "mutations_injected": 1125,
+  "behavior_verifiable": true
+ },
+ "usable_for": {
+  "six_dimension_scoring": true,
+  "behavior_preservation_claim": true
+ }
+}

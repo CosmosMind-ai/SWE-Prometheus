@@ -1,0 +1,46 @@
+diff --git a/tests_verify/test_characterization.py b/tests_verify/test_characterization.py
+new file mode 100644
+index 0000000..ace9f72
+--- /dev/null
++++ b/tests_verify/test_characterization.py
+@@ -0,0 +1,40 @@
++import os
++import subprocess
++import sys
++
++
++def test_clean_temp_files_cli_removes_file_from_supplied_directory(tmp_path):
++    target_directory = tmp_path / "selected-temp"
++    other_directory = tmp_path / "other-temp"
++    target_directory.mkdir()
++    other_directory.mkdir()
++
++    target_checkpoint = target_directory / "checkpoint.pt"
++    other_checkpoint = other_directory / "checkpoint.pt"
++    target_checkpoint.write_bytes(b"target")
++    other_checkpoint.write_bytes(b"other")
++
++    env = os.environ.copy()
++    env["PYTHONDONTWRITEBYTECODE"] = "1"
++    env["PYTHONPATH"] = os.pathsep.join(
++        entry for entry in sys.path if isinstance(entry, str) and entry
++    )
++
++    completed = subprocess.run(
++        [
++            sys.executable,
++            "-m",
++            "system.clean_temp_files",
++            str(target_directory),
++        ],
++        cwd=tmp_path,
++        env=env,
++        capture_output=True,
++        text=True,
++        timeout=10,
++        check=False,
++    )
++
++    assert completed.returncode == 0
++    assert not target_checkpoint.exists()
++    assert other_checkpoint.read_bytes() == b"other"

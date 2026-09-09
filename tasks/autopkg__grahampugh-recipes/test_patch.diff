@@ -1,0 +1,83 @@
+diff --git a/tests_verify/test_characterization.py b/tests_verify/test_characterization.py
+new file mode 100644
+index 0000000..8d05ec3
+--- /dev/null
++++ b/tests_verify/test_characterization.py
+@@ -0,0 +1,77 @@
++from pathlib import Path
++
++import pytest
++
++from JamfUploaderProcessors.JamfUploaderLib.JamfSchemaRegistry import (
++    CLASSIC_ALIAS_TABLE,
++    CLASSIC_LIST_KEY_OVERRIDES,
++    JamfSchemaRegistry,
++)
++
++
++@pytest.mark.parametrize(
++    ("object_type", "resource_name"),
++    [
++        ("account", "accounts"),
++        ("account_user", "accounts"),
++        ("account_group", "accounts"),
++        ("computer_group", "computergroups"),
++        ("configuration_profile", "mobiledeviceconfigurationprofiles"),
++        ("dock_item", "dockitems"),
++        ("mac_application", "macapplications"),
++        ("mobile_device_application", "mobiledeviceapplications"),
++        ("os_x_configuration_profile", "osxconfigurationprofiles"),
++        ("package", "packages"),
++        ("patch_policy", "patchpolicies"),
++        ("policy", "policies"),
++        ("policy_icon", "fileuploads"),
++        ("restricted_software", "restrictedsoftware"),
++    ],
++)
++def test_classic_aliases(object_type, resource_name):
++    assert CLASSIC_ALIAS_TABLE[object_type] == resource_name
++
++
++@pytest.mark.parametrize(
++    ("resource_name", "list_key"),
++    [
++        ("accounts", "accounts"),
++        ("activationcode", "activation_code"),
++        ("advancedcomputersearches", "advanced_computer_searches"),
++        ("computergroups", "computer_groups"),
++        ("distributionpoints", "distribution_points"),
++        ("dockitems", "dock_items"),
++        ("ldapservers", "ldap_servers"),
++        ("macapplications", "mac_applications"),
++        ("mobiledeviceapplications", "mobile_device_applications"),
++        ("mobiledevicegroups", "mobile_device_groups"),
++        ("networksegments", "network_segments"),
++        ("osxconfigurationprofiles", "os_x_configuration_profiles"),
++        ("patchpolicies", "patch_policies"),
++        ("patchsoftwaretitles", "patch_software_titles"),
++    ],
++)
++def test_classic_list_key_overrides(resource_name, list_key):
++    assert CLASSIC_LIST_KEY_OVERRIDES[resource_name] == list_key
++
++
++def test_schema_registry_normalizes_trailing_slashes(tmp_path):
++    cache_dir = tmp_path / "schema-cache"
++    registry = JamfSchemaRegistry(
++        jamf_url="https://jamf.example.test///",
++        cache_dir=str(cache_dir),
++        log_fn=lambda message, verbose_level=2: None,
++    )
++
++    assert registry.jamf_url == "https://jamf.example.test"
++
++
++def test_schema_registry_retains_configured_cache_directory(tmp_path):
++    cache_dir = tmp_path / "schema-cache"
++    registry = JamfSchemaRegistry(
++        jamf_url="https://jamf.example.test",
++        cache_dir=str(cache_dir),
++        log_fn=lambda message, verbose_level=2: None,
++    )
++
++    assert Path(registry.cache_dir) == cache_dir

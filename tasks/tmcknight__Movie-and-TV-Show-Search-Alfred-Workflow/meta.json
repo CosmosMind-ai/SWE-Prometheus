@@ -1,0 +1,46 @@
+{
+ "instance_id": "tmcknight__Movie-and-TV-Show-Search-Alfred-Workflow",
+ "repo": "tmcknight/Movie-and-TV-Show-Search-Alfred-Workflow",
+ "base_commit": "bbe4d6e46db56c51ade806a393568c8d4fb8ad1b",
+ "task_info": {
+  "type": "repository_governance_retrofit",
+  "oracle": false,
+  "note": "无 issue、无缺陷列表、无目标补丁；agent 自行判断工程风险",
+  "dimensions": {
+   "D1": "Tests & CI",
+   "D2": "Code Quality Gates",
+   "D3": "Documentation & Collaboration",
+   "D4": "Structure & Maintainability",
+   "D5": "Reproducible Environment",
+   "D6": "Dependency & Security Health"
+  },
+  "metric": "NGI = mean_d (treated_d - base_d) / (5 - base_d)",
+  "acceptable_score": 4,
+  "budget": {
+   "agent_wall_clock_s": 1800,
+   "max_turns": 80,
+   "max_tokens": 2000000
+  }
+ },
+ "repo_info": {
+  "stars": 98,
+  "license": "MIT"
+ },
+ "base_scores": {
+  "D1": 1,
+  "D2": 1,
+  "D3": 3,
+  "D4": 3,
+  "D5": 1,
+  "D6": 1
+ },
+ "base_mean": 1.667,
+ "weak_dims": 4,
+ "verification": {
+  "verify_patch": "verify_patch.diff",
+  "n_tests": 14,
+  "gate_strength": "detected",
+  "gate_mutations_injected": 473
+ },
+ "split": "public"
+}

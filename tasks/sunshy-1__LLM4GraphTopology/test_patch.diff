@@ -1,0 +1,27 @@
+diff --git a/tests_verify/test_characterization.py b/tests_verify/test_characterization.py
+new file mode 100644
+index 0000000..223457d
+--- /dev/null
++++ b/tests_verify/test_characterization.py
+@@ -0,0 +1,21 @@
++import importlib
++import sys
++from pathlib import Path
++
++
++_CODE_ROOT = Path(__file__).resolve().parents[1] / "code"
++if str(_CODE_ROOT) not in sys.path:
++    sys.path.insert(0, str(_CODE_ROOT))
++
++
++def test_gcn_lib_is_importable_as_a_package():
++    module = importlib.import_module("gcn_lib")
++
++    assert hasattr(module, "__path__")
++
++
++def test_gcn_lib_import_is_cached():
++    first = importlib.import_module("gcn_lib")
++    second = importlib.import_module("gcn_lib")
++
++    assert first is second

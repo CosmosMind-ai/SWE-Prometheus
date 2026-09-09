@@ -1,0 +1,132 @@
+diff --git a/tests_verify/test_characterization.py b/tests_verify/test_characterization.py
+new file mode 100644
+index 0000000..d3cf79b
+--- /dev/null
++++ b/tests_verify/test_characterization.py
+@@ -0,0 +1,126 @@
++import datetime
++import decimal
++
++from base import call, option, put
++from optionPrimitives import optionPrimitive, putVertical, strangle
++from riskManager import putVerticalRiskManagement, strangleRiskManagement
++
++
++DATE_TIME = datetime.datetime(2021, 1, 1)
++EXPIRATION_DATE_TIME = datetime.datetime(2021, 1, 20)
++
++
++def make_put():
++    return put.Put(
++        underlyingTicker="SPX",
++        underlyingPrice=decimal.Decimal("2786.24"),
++        strikePrice=decimal.Decimal("2690"),
++        delta=0.15,
++        vega=0.04,
++        theta=-0.07,
++        gamma=0.11,
++        dateTime=DATE_TIME,
++        expirationDateTime=EXPIRATION_DATE_TIME,
++        tradePrice=decimal.Decimal("7.475"),
++        settlementPrice=decimal.Decimal("7.475"),
++    )
++
++
++def make_call():
++    return call.Call(
++        underlyingTicker="SPX",
++        underlyingPrice=decimal.Decimal("2786.24"),
++        strikePrice=decimal.Decimal("2855"),
++        delta=-0.16,
++        vega=0.05,
++        theta=-0.06,
++        gamma=0.12,
++        dateTime=DATE_TIME,
++        expirationDateTime=EXPIRATION_DATE_TIME,
++        tradePrice=decimal.Decimal("5.30"),
++        settlementPrice=decimal.Decimal("5.30"),
++    )
++
++
++def test_put_and_call_are_distinct_option_types():
++    put_option = make_put()
++    call_option = make_call()
++
++    assert isinstance(put_option, option.Option)
++    assert isinstance(call_option, option.Option)
++    assert type(put_option) is put.Put
++    assert type(call_option) is call.Call
++    assert type(put_option) is not type(call_option)
++
++
++def test_transaction_type_enum_values():
++    assert optionPrimitive.TransactionType.BUY.name == "BUY"
++    assert optionPrimitive.TransactionType.SELL.name == "SELL"
++    assert optionPrimitive.TransactionType.BUY.value == 0
++    assert optionPrimitive.TransactionType.SELL.value == 1
++
++
++def test_strangle_reports_the_component_option_date_time():
++    primitive = strangle.Strangle(
++        orderQuantity=1,
++        contractMultiplier=100,
++        callOpt=make_call(),
++        putOpt=make_put(),
++        buyOrSell=optionPrimitive.TransactionType.SELL,
++    )
++
++    assert isinstance(primitive, optionPrimitive.OptionPrimitive)
++    assert primitive.getDateTime() == DATE_TIME
++
++
++def test_put_vertical_reports_the_component_option_date_time():
++    lower_strike = put.Put(
++        underlyingTicker="SPX",
++        underlyingPrice=decimal.Decimal("359.69"),
++        strikePrice=decimal.Decimal("325"),
++        delta=-0.46,
++        vega=0.07974,
++        theta=-0.069166,
++        gamma=0.004462,
++        dateTime=DATE_TIME,
++        expirationDateTime=EXPIRATION_DATE_TIME,
++        tradePrice=decimal.Decimal("0.5005"),
++        settlementPrice=decimal.Decimal("0.5005"),
++    )
++    higher_strike = put.Put(
++        underlyingTicker="SPX",
++        underlyingPrice=decimal.Decimal("359.69"),
++        strikePrice=decimal.Decimal("345"),
++        delta=-0.142391,
++        vega=0.173239,
++        theta=-0.094256,
++        gamma=0.0148523,
++        dateTime=DATE_TIME,
++        expirationDateTime=EXPIRATION_DATE_TIME,
++        tradePrice=decimal.Decimal("1.125"),
++        settlementPrice=decimal.Decimal("1.125"),
++    )
++
++    primitive = putVertical.PutVertical(
++        1,
++        100,
++        lower_strike,
++        higher_strike,
++        optionPrimitive.TransactionType.SELL,
++    )
++
++    assert isinstance(primitive, optionPrimitive.OptionPrimitive)
++    assert primitive.getDateTime() == DATE_TIME
++
++
++def test_hold_to_expiration_risk_managers_can_be_constructed():
++    strangle_manager = strangleRiskManagement.StrangleRiskManagement(
++        strangleRiskManagement.StrangleManagementStrategyTypes.HOLD_TO_EXPIRATION
++    )
++    vertical_manager = putVerticalRiskManagement.PutVerticalRiskManagement(
++        putVerticalRiskManagement.PutVerticalManagementStrategyTypes.HOLD_TO_EXPIRATION,
++        closeDuration=None,
++    )
++
++    assert type(strangle_manager) is strangleRiskManagement.StrangleRiskManagement
++    assert type(vertical_manager) is putVerticalRiskManagement.PutVerticalRiskManagement

@@ -1,0 +1,188 @@
+diff --git a/tests_verify/test_characterization.py b/tests_verify/test_characterization.py
+new file mode 100644
+index 0000000..c253ff2
+--- /dev/null
++++ b/tests_verify/test_characterization.py
+@@ -0,0 +1,182 @@
++import json
++import sys
++from pathlib import Path
++from types import SimpleNamespace
++
++_SOURCE_ROOT = Path(__file__).resolve().parents[1] / "src"
++if str(_SOURCE_ROOT) not in sys.path:
++    sys.path.insert(0, str(_SOURCE_ROOT))
++
++from data.count import count
++
++
++def run_count(tmp_path, monkeypatch, task, model, data):
++    source = tmp_path / "results.json"
++    source.write_text(json.dumps(data), encoding="utf-8")
++    monkeypatch.chdir(tmp_path)
++
++    result = count(SimpleNamespace(task=task, src=str(source), model=model))
++
++    stats_path = tmp_path / f"{model}_stats.json"
++    return result, json.loads(stats_path.read_text(encoding="utf-8"))
++
++
++def test_count_regular_results_include_per_task_and_overall_stats(
++    tmp_path, monkeypatch
++):
++    data = [
++        {
++            "questions": [
++                {
++                    "task_type": "visual",
++                    "answer": "A",
++                    "demo-model": ["A"],
++                },
++                {
++                    "task_type": "visual",
++                    "answer": "B",
++                    "demo-model": ["A"],
++                },
++                {
++                    "task_type": "audio",
++                    "answer": "sound",
++                    "demo-model": [""],
++                },
++                {
++                    "task_type": "missing",
++                    "answer": "unused",
++                },
++            ]
++        }
++    ]
++
++    result, stats = run_count(
++        tmp_path, monkeypatch, task="real", model="demo-model", data=data
++    )
++
++    assert result is None
++    assert stats == {
++        "visual": {
++            "total": 2,
++            "correct": 1,
++            "accuracy": 0.5,
++        },
++        "total": {
++            "total": 2,
++            "correct": 1,
++            "accuracy": 0.5,
++        },
++    }
++
++
++def test_count_sqa_uses_nested_question_groups_without_overall_stats(
++    tmp_path, monkeypatch
++):
++    data = [
++        [
++            {
++                "questions": [
++                    {
++                        "task_type": "memory",
++                        "answer": "A",
++                        "demo-model": ["A"],
++                    },
++                    {
++                        "task_type": "memory",
++                        "answer": "B",
++                        "demo-model": ["A"],
++                    },
++                    {
++                        "task_type": "ignored",
++                        "answer": "X",
++                    },
++                ]
++            }
++        ],
++        [
++            {
++                "questions": [
++                    {
++                        "task_type": "reasoning",
++                        "answer": "C",
++                        "demo-model": ["C"],
++                    }
++                ]
++            }
++        ],
++    ]
++
++    result, stats = run_count(
++        tmp_path, monkeypatch, task="sqa", model="demo-model", data=data
++    )
++
++    assert result is None
++    assert stats == {
++        "memory": {
++            "total": 2,
++            "correct": 1,
++            "accuracy": 0.5,
++        },
++        "reasoning": {
++            "total": 1,
++            "correct": 1,
++            "accuracy": 1.0,
++        },
++    }
++
++
++def test_count_proactive_scores_timestamp_tolerance_and_output_substring(
++    tmp_path, monkeypatch
++):
++    data = [
++        {
++            "questions": [
++                {
++                    "task_type": "event",
++                    "ground_truth_time_stamp": "00:01:00",
++                    "ground_truth_output": "Go",
++                    "demo-model": {
++                        "dialog_history": [
++                            {
++                                "time": 62,
++                                "content": "Go now",
++                            }
++                        ]
++                    },
++                },
++                {
++                    "task_type": "event",
++                    "ground_truth_time_stamp": "00:01:00",
++                    "ground_truth_output": "Stop",
++                    "demo-model": {
++                        "dialog_history": [
++                            {
++                                "time": 64,
++                                "content": "Stop",
++                            }
++                        ]
++                    },
++                },
++                {
++                    "task_type": "ignored",
++                    "ground_truth_time_stamp": "00:00:10",
++                    "ground_truth_output": "Unused",
++                },
++            ]
++        }
++    ]
++
++    result, stats = run_count(
++        tmp_path, monkeypatch, task="proactive", model="demo-model", data=data
++    )
++
++    assert result is None
++    assert stats == {
++        "event": {
++            "total": 2,
++            "time_correct": 1,
++            "answer_correct": 1,
++            "time_accuracy": 0.5,
++            "answer_accuracy": 0.5,
++        }
++    }

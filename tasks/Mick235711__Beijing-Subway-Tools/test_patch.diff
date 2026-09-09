@@ -1,0 +1,12 @@
+diff --git a/tests_verify/test_characterization.py b/tests_verify/test_characterization.py
+new file mode 100644
+index 0000000..9d94027
+--- /dev/null
++++ b/tests_verify/test_characterization.py
+@@ -0,0 +1,6 @@
++import importlib
++
++
++def test_top_level_package_is_importable():
++    module = importlib.import_module("src")
++    assert module.__name__ == "src"

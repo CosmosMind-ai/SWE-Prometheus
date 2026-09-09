@@ -1,0 +1,83 @@
+diff --git a/tests_verify/test_characterization.py b/tests_verify/test_characterization.py
+new file mode 100644
+index 0000000..d224558
+--- /dev/null
++++ b/tests_verify/test_characterization.py
+@@ -0,0 +1,77 @@
++import sys
++import types
++
++import pytest
++
++
++sys.modules.setdefault("sdata", types.ModuleType("sdata"))
++
++from libx.microWebSrv import MicroWebSrv, MicroWebSrvRoute
++
++
++@pytest.mark.parametrize(
++    ("value", "expected"),
++    [
++        ("", ""),
++        ("plain text", "plain text"),
++        (
++            """<&>"'""",
++            "&lt;&amp;&gt;&quot;&apos;",
++        ),
++        (
++            "café\n5 < 7 && 9 > 3",
++            "café\n5 &lt; 7 &amp;&amp; 9 &gt; 3",
++        ),
++        (
++            "&lt; already escaped",
++            "&amp;lt; already escaped",
++        ),
++    ],
++)
++def test_html_escape(value, expected):
++    assert MicroWebSrv.HTMLEscape(value) == expected
++
++
++def test_html_escape_preserves_characters_not_in_escape_table():
++    value = "AZaz09 /\\=+-_[]{}():;,.!?\t\n"
++    assert MicroWebSrv.HTMLEscape(value) == value
++
++
++def test_route_decorator_returns_the_original_callable():
++    def handler(client, response):
++        return client, response
++
++    decorated = MicroWebSrv.route("/characterization")(handler)
++
++    assert decorated is handler
++    assert decorated("client", "response") == ("client", "response")
++
++
++def test_route_decorator_accepts_an_explicit_method():
++    @MicroWebSrv.route("/items", method="POST")
++    def handler(value):
++        return value.upper()
++
++    assert handler("payload") == "PAYLOAD"
++
++
++def test_route_value_object_exposes_constructor_values():
++    route_args = ["category", "item_id"]
++    route_regex = object()
++
++    def handler():
++        return None
++
++    route = MicroWebSrvRoute(
++        "/items/<category>/<item_id>",
++        "PATCH",
++        handler,
++        route_args,
++        route_regex,
++    )
++
++    assert route.route == "/items/<category>/<item_id>"
++    assert route.method == "PATCH"
++    assert route.func is handler
++    assert route.routeArgNames == ["category", "item_id"]
++    assert route.routeRegex is route_regex

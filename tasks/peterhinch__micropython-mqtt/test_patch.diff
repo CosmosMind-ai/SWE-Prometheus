@@ -1,0 +1,144 @@
+diff --git a/tests_verify/test_characterization.py b/tests_verify/test_characterization.py
+new file mode 100644
+index 0000000..75acb85
+--- /dev/null
++++ b/tests_verify/test_characterization.py
+@@ -0,0 +1,138 @@
++import struct
++import sys
++import time
++import types
++
++import pytest
++
++
++if not hasattr(time, "ticks_ms"):
++    time.ticks_ms = lambda: int(time.monotonic() * 1000)
++
++if not hasattr(time, "ticks_diff"):
++    time.ticks_diff = lambda end, start: end - start
++
++if "micropython" not in sys.modules:
++    micropython_stub = types.ModuleType("micropython")
++    micropython_stub.const = lambda value: value
++    sys.modules["micropython"] = micropython_stub
++
++if "machine" not in sys.modules:
++    machine_stub = types.ModuleType("machine")
++    machine_stub.unique_id = lambda: b"\x01\x23\x45\x67"
++    sys.modules["machine"] = machine_stub
++
++if "network" not in sys.modules:
++    network_stub = types.ModuleType("network")
++    network_stub.STA_IF = 0
++    network_stub.AP_IF = 1
++    sys.modules["network"] = network_stub
++
++import mqtt_as
++from mqtt_as import mqtt_v5_properties as properties
++
++
++def test_public_version_and_default_configuration():
++    assert mqtt_as.VERSION == (0, 8, 5)
++    assert mqtt_as.IBUFSIZE == 50
++    assert mqtt_as.MSG_BYTES is True
++    assert mqtt_as.config["client_id"] == b"01234567"
++    assert mqtt_as.config["port"] == 0
++    assert mqtt_as.config["keepalive"] == 60
++    assert mqtt_as.config["ping_interval"] == 0
++    assert mqtt_as.config["clean_init"] is True
++    assert mqtt_as.config["clean"] is True
++    assert mqtt_as.config["queue_len"] == 0
++    assert mqtt_as.config["gateway"] is False
++    assert mqtt_as.config["mqttv5"] is False
++
++
++@pytest.mark.parametrize("qos", [0, 1, False, True, 0.0, 1.0])
++def test_qos_check_accepts_values_equal_to_zero_or_one(qos):
++    assert mqtt_as.qos_check(qos) is None
++
++
++@pytest.mark.parametrize("qos", [-1, 2, None, "0", "1"])
++def test_qos_check_rejects_other_values(qos):
++    with pytest.raises(ValueError):
++        mqtt_as.qos_check(qos)
++
++
++def test_packet_identifier_generator_wraps_after_65535():
++    identifiers = mqtt_as.pid_gen()
++
++    assert next(identifiers) == 1
++
++    last = None
++    for _ in range(65534):
++        last = next(identifiers)
++
++    assert last == 65535
++    assert next(identifiers) == 1
++    assert next(identifiers) == 2
++
++
++@pytest.mark.parametrize(
++    ("value", "encoded"),
++    [
++        (0, b"\x00"),
++        (127, b"\x7f"),
++        (128, b"\x80\x01"),
++        (16383, b"\xff\x7f"),
++        (16384, b"\x80\x80\x01"),
++        (268435455, b"\xff\xff\xff\x7f"),
++    ],
++)
++def test_vbi_encodes_mqtt_variable_byte_integers(value, encoded):
++    buffer = bytearray(b"\xaa" * 8)
++
++    end = mqtt_as.vbi(buffer, 1, value)
++
++    assert end == 1 + len(encoded)
++    assert bytes(buffer[1:end]) == encoded
++    assert buffer[0] == 0xAA
++    assert bytes(buffer[end:]) == b"\xaa" * (8 - end)
++
++
++def test_fixed_width_property_encoders():
++    assert properties.encode_byte(37) == 37
++    assert properties.encode_two_byte_int(0x1234) == b"\x12\x34"
++    assert properties.encode_four_byte_int(0x12345678) == b"\x12\x34\x56\x78"
++
++    with pytest.raises(struct.error):
++        properties.encode_two_byte_int(65536)
++
++    with pytest.raises(struct.error):
++        properties.encode_four_byte_int(-1)
++
++
++def test_string_binary_and_string_pair_property_encoders():
++    assert properties.encode_string("café") == b"\x00\x05caf\xc3\xa9"
++    assert properties.encode_binary(b"\x00\xffdata") == b"\x00\x06\x00\xffdata"
++    assert properties.encode_string_pair({"first": "one", "second": "two"}) == (
++        b"\x00\x05first\x00\x03one"
++    )
++
++
++@pytest.mark.parametrize(
++    ("value", "encoded"),
++    [
++        (0, b"\x00"),
++        (1, b"\x01"),
++        (127, b"\x7f"),
++        (128, b"\x80\x01"),
++        (321, b"\xc1\x02"),
++        (16384, b"\x80\x80\x01"),
++        (268435455, b"\xff\xff\xff\x7f"),
++    ],
++)
++def test_property_variable_byte_integer_encoding(value, encoded):
++    result = properties.encode_variable_byte_int(value)
++
++    assert isinstance(result, bytearray)
++    assert bytes(result) == encoded
++
++
++def test_public_mqtt_exception_is_a_regular_exception_type():
++    error = mqtt_as.MQTTException()
++    assert isinstance(error, Exception)

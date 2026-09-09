@@ -1,0 +1,19 @@
+diff --git a/tests_verify/test_characterization.py b/tests_verify/test_characterization.py
+new file mode 100644
+index 0000000..caf2820
+--- /dev/null
++++ b/tests_verify/test_characterization.py
+@@ -0,0 +1,13 @@
++import importlib
++
++
++def test_scripts_package_is_importable():
++    module = importlib.import_module("scripts")
++    assert module.__name__ == "scripts"
++
++
++def test_inference_packages_are_importable():
++    real = importlib.import_module("inference.real")
++    robotwin = importlib.import_module("inference.robotwin")
++    assert real.__name__ == "inference.real"
++    assert robotwin.__name__ == "inference.robotwin"

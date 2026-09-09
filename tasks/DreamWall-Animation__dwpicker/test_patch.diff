@@ -1,0 +1,69 @@
+diff --git a/tests_verify/test_characterization.py b/tests_verify/test_characterization.py
+new file mode 100644
+index 0000000..6acbdbe
+--- /dev/null
++++ b/tests_verify/test_characterization.py
+@@ -0,0 +1,63 @@
++import importlib
++
++import pytest
++
++
++def _import(name):
++    try:
++        return importlib.import_module(name)
++    except ImportError as exc:
++        pytest.skip("optional runtime dependency unavailable: {}".format(exc))
++
++
++def test_geometry_distance_uses_euclidean_distance():
++    geometry = _import("dwpicker.geometry")
++    pyside = _import("dwpicker.pyside")
++
++    point_type = pyside.QtCore.QPointF
++    assert geometry.distance(point_type(0, 0), point_type(3, 4)) == 5
++
++
++def test_geometry_grow_rect_expands_each_side():
++    geometry = _import("dwpicker.geometry")
++    pyside = _import("dwpicker.pyside")
++
++    rect = pyside.QtCore.QRectF(10, 20, 30, 40)
++    grown = geometry.grow_rect(rect, 5)
++
++    assert grown.left() == 5
++    assert grown.top() == 15
++    assert grown.right() == 45
++    assert grown.bottom() == 65
++
++
++def test_list_targets_returns_unique_targets_from_all_shapes():
++    picker = _import("dwpicker.picker")
++
++    class Shape:
++        def __init__(self, targets):
++            self._targets = targets
++
++        def targets(self):
++            return self._targets
++
++    shapes = [
++        Shape(["arm", "leg"]),
++        Shape(["leg", "head"]),
++        Shape([]),
++    ]
++
++    assert picker.list_targets(shapes) == {"arm", "leg", "head"}
++
++
++def test_list_targets_accepts_empty_shape_collection():
++    picker = _import("dwpicker.picker")
++
++    assert picker.list_targets([]) == set()
++
++
++def test_main_exposes_current_window_constants():
++    main = _import("dwpicker.main")
++
++    assert main.WINDOW_TITLE == "DreamWall - Picker"
++    assert main.WINDOW_CONTROL_NAME == "dwPickerWindow"

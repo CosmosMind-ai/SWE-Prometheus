@@ -1,0 +1,96 @@
+diff --git a/tests_verify/test_characterization.py b/tests_verify/test_characterization.py
+new file mode 100644
+index 0000000..051caa0
+--- /dev/null
++++ b/tests_verify/test_characterization.py
+@@ -0,0 +1,90 @@
++import json
++import subprocess
++import sys
++from pathlib import Path
++
++
++REPO_ROOT = Path(__file__).resolve().parents[1]
++
++
++def find_factory_doctor() -> Path:
++    candidates = sorted(REPO_ROOT.rglob("factory_doctor.py"))
++    if not candidates:
++        raise AssertionError("The documented factory_doctor CLI entry point is missing")
++    return candidates[0]
++
++
++def run_doctor(*args: object, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
++    return subprocess.run(
++        [sys.executable, str(find_factory_doctor()), *(str(arg) for arg in args)],
++        cwd=cwd or REPO_ROOT,
++        text=True,
++        capture_output=True,
++        timeout=20,
++        check=False,
++    )
++
++
++def initialize_repository(path: Path) -> None:
++    path.mkdir()
++    subprocess.run(
++        ["git", "init", "--quiet", str(path)],
++        text=True,
++        capture_output=True,
++        timeout=10,
++        check=True,
++    )
++
++
++def test_factory_doctor_help_exposes_documented_options():
++    result = run_doctor("--help")
++
++    assert result.returncode == 0
++    assert "--repo" in result.stdout
++    assert "--audit" in result.stdout
++    assert "--json" in result.stdout
++
++
++def test_factory_doctor_returns_two_when_repository_does_not_exist(tmp_path):
++    missing_repository = tmp_path / "missing"
++
++    result = run_doctor("--repo", missing_repository)
++
++    assert result.returncode == 2
++
++
++def test_factory_doctor_reports_failures_for_empty_git_repository(tmp_path):
++    repository = tmp_path / "repo"
++    initialize_repository(repository)
++
++    result = run_doctor("--repo", repository, cwd=repository)
++
++    assert result.returncode == 1
++
++
++def test_factory_doctor_json_contains_structured_fail_findings(tmp_path):
++    repository = tmp_path / "repo"
++    initialize_repository(repository)
++
++    first = run_doctor("--repo", repository, "--json", cwd=repository)
++    second = run_doctor("--repo", repository, "--json", cwd=repository)
++
++    assert first.returncode == 1
++    assert second.returncode == 1
++
++    first_payload = json.loads(first.stdout)
++    second_payload = json.loads(second.stdout)
++
++    assert first_payload == second_payload
++    assert isinstance(first_payload, dict)
++    assert isinstance(first_payload["findings"], list)
++    assert first_payload["findings"]
++    assert any(finding["level"] == "FAIL" for finding in first_payload["findings"])
++
++    for finding in first_payload["findings"]:
++        assert set(finding) == {"level", "check", "message", "fix", "evidence"}
++        assert finding["level"] in {"FAIL", "WARN", "OK", "INFO"}
++        assert isinstance(finding["check"], str)
++        assert isinstance(finding["message"], str)
++        assert isinstance(finding["fix"], str)
++        assert isinstance(finding["evidence"], list)

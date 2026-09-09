@@ -1,0 +1,28 @@
+# SWE-Prometheus 证据采集环境（proposal.md §3.5）
+#
+# 两个设计约束，都来自 output/audit：
+#   F-005：被评分的仓库不能被验证过程改动。所以仓库以只读挂到 /src，
+#          容器内先复制到 /work 再跑，宿主上的快照永远不被写。
+#   F-004：judge 需要确定性探针，不能只看 diff。所以复杂度、依赖审计、
+#          凭据扫描这些工具预装在镜像里，每个状态都跑同一套。
+# Docker Hub 直连不通，走镜像源（沿用 crossmodal/swesyn/docker_mirrors.py 的那组）
+FROM docker.1ms.run/library/python:3.11-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git curl ca-certificates build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# 统一的检查工具集。版本固定，保证 base 和 treated 用的是同一把尺子。
+RUN pip install --no-cache-dir \
+        pytest==8.3.4 \
+        pytest-timeout==2.3.1 \
+        ruff==0.8.4 \
+        mypy==1.14.0 \
+        build==1.2.2 \
+        pip-audit==2.7.3 \
+        detect-secrets==1.5.0 \
+        radon==6.0.1
+
+WORKDIR /work
+COPY probe.py /probe.py
+ENTRYPOINT ["python3", "/probe.py"]

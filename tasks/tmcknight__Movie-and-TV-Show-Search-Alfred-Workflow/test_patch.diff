@@ -1,0 +1,146 @@
+diff --git a/tests_verify/test_characterization.py b/tests_verify/test_characterization.py
+new file mode 100644
+index 0000000..45c7b61
+--- /dev/null
++++ b/tests_verify/test_characterization.py
+@@ -0,0 +1,140 @@
++import io
++
++import pytest
++
++from mako import __version__, exceptions, filters
++from mako.lookup import TemplateLookup
++from mako.runtime import Context
++from mako.template import Template
++
++
++def test_package_version():
++    assert __version__ == "1.0.0"
++
++
++def test_template_renders_expressions_and_preserves_unescaped_markup():
++    template = Template("Hello, ${name}! ${markup}")
++
++    assert template.render(name="Ada", markup="<strong>Welcome</strong>") == (
++        "Hello, Ada! <strong>Welcome</strong>"
++    )
++
++
++def test_template_html_filter_escapes_special_characters():
++    template = Template("${value | h}")
++
++    assert template.render(value='<tag title="x">Tom & Jerry</tag>') == (
++        "&lt;tag title=&#34;x&#34;&gt;Tom &amp; Jerry&lt;/tag&gt;"
++    )
++
++
++def test_public_html_escape_filter():
++    assert filters.html_escape("\"' < & >") == "&#34;&#39; &lt; &amp; &gt;"
++
++
++def test_template_control_lines_and_loop_context():
++    template = Template(
++        "% for item in items:\n"
++        "${loop.index}:${item}\n"
++        "% endfor"
++    )
++
++    assert template.render(items=("alpha", "beta", "gamma")) == (
++        "0:alpha\n"
++        "1:beta\n"
++        "2:gamma\n"
++    )
++
++
++def test_template_def_can_be_called_from_template_body():
++    template = Template(
++        '<%def name="greet(name)">Hello ${name}</%def>'
++        '${greet("Ada")}'
++    )
++
++    assert template.render() == "Hello Ada"
++
++
++def test_output_encoding_makes_render_return_bytes():
++    template = Template(
++        "café ${word}",
++        output_encoding="utf-8",
++        encoding_errors="strict",
++    )
++
++    result = template.render(word="雪")
++
++    assert isinstance(result, bytes)
++    assert result == "café 雪".encode("utf-8")
++
++
++def test_missing_expression_name_raises_name_error():
++    template = Template("${missing}")
++
++    with pytest.raises(NameError):
++        template.render()
++
++
++def test_reserved_render_argument_raises_name_conflict_error():
++    template = Template("${context}")
++
++    with pytest.raises(exceptions.NameConflictError):
++        template.render(context="supplied")
++
++
++def test_invalid_template_expression_raises_syntax_exception():
++    with pytest.raises(exceptions.SyntaxException):
++        Template("${")
++
++
++def test_lookup_renders_included_template_from_configured_directory(tmp_path):
++    source_directory = tmp_path / "templates"
++    module_directory = tmp_path / "compiled"
++    source_directory.mkdir()
++    module_directory.mkdir()
++
++    (source_directory / "main.txt").write_text(
++        'Before|<%include file="part.txt"/>|After',
++        encoding="utf-8",
++    )
++    (source_directory / "part.txt").write_text(
++        "${detail}",
++        encoding="utf-8",
++    )
++
++    lookup = TemplateLookup(
++        directories=[str(source_directory)],
++        module_directory=str(module_directory),
++        input_encoding="utf-8",
++    )
++
++    assert lookup.get_template("main.txt").render(detail="included") == (
++        "Before|included|After"
++    )
++
++
++def test_lookup_missing_template_raises_top_level_lookup_exception(tmp_path):
++    lookup = TemplateLookup(directories=[str(tmp_path)])
++
++    with pytest.raises(exceptions.TopLevelLookupException):
++        lookup.get_template("missing.txt")
++
++
++def test_context_kwargs_returns_a_defensive_copy():
++    context = Context(io.StringIO(), name="Ada", count=2)
++
++    first = context.kwargs
++    first["name"] = "changed"
++    first["extra"] = True
++
++    assert context.kwargs == {"name": "Ada", "count": 2}
++
++
++def test_context_write_uses_supplied_output_buffer():
++    buffer = io.StringIO()
++    context = Context(buffer)
++
++    context.write("first")
++    context.write(" second")
++
++    assert buffer.getvalue() == "first second"

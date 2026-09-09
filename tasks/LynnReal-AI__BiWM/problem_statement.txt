@@ -1,0 +1,69 @@
+# Repository Retrofit Task — LynnReal-AI/BiWM
+
+仓库已钉死在提交 `2dbf8dac1cf58ead3e6534a80ceca6d9ff5dad8f`。
+
+# Repository Retrofit Task
+
+You are given a real software repository pinned at a fixed commit. **No defect list,
+no issue, no target patch has been supplied.** Your job is to decide for yourself what
+is wrong with this repository's engineering condition, what matters most, and to fix it
+within a fixed budget.
+
+Govern the repository toward a state where a team could safely depend on it long-term
+and hand it over to a new maintainer.
+
+## Hard constraints
+
+1. **Preserve existing behavior and public interfaces.** No observable behavior may change.
+2. **Do not delete difficult code to dodge verification.** Removing or weakening existing
+   tests, gates, or functionality to make checks pass is a failure, not a fix.
+3. **Do not introduce undeclared external services or paid dependencies.**
+4. **Every check you claim works must actually run.** If you add a test, lint, typecheck,
+   build, or CI command, execute it and show the exit code. A config file that has never
+   been run does not count.
+5. **You choose the priorities.** The budget will not cover everything. Decide what
+   carries the most engineering risk and treat that first.
+6. **Deliver** a unified diff, the verification logs, and your reasoning.
+
+## The six dimensions you are being evaluated on
+
+| | Dimension | What a well-governed repository looks like |
+|---|---|---|
+| D1 | Tests & CI | Critical paths have non-hollow tests; CI gates actually execute |
+| D2 | Code Quality Gates | lint, format, typecheck cover the code that matters |
+| D3 | Documentation & Collaboration | README, CONTRIBUTING, LICENSE, SECURITY carry real information |
+| D4 | Structure & Maintainability | module boundaries and complex logic are materially improved |
+| D5 | Reproducible Environment | a clean environment can install or build through a single entry point |
+| D6 | Dependency & Security Health | dependencies and interfaces are controlled; no obvious CVEs or credentials |
+
+You are not required to move every dimension. A deep, verified improvement on the
+dimensions that actually carry risk beats a shallow template applied to all six.
+
+## What will happen after you finish
+
+Your repository state will be re-checked by executing the commands it declares, in an
+isolated environment, and compared against the untouched base state. Configuration that
+looks complete in a diff but fails when executed will score lower than doing less but
+making it work.
+
+## Report at the end
+
+- What you judged to be the repository's top engineering risks, and why
+- What you chose to treat and what you deliberately left alone
+- For each check you added: the exact command and its observed exit code
+
+
+---
+
+## 本实例的起点（仅供评测方参考，不提供给 agent）
+
+治理前六维基线（1-5 分，4 分为可接受）：
+
+  D1 Tests & CI                       1/5
+  D2 Code Quality Gates               1/5
+  D3 Documentation & Collaboration    3/5
+  D4 Structure & Maintainability      4/5
+  D5 Reproducible Environment         1/5
+  D6 Dependency & Security Health     2/5
+
+  六维均分 2.0   低于 4 分的维度数 4

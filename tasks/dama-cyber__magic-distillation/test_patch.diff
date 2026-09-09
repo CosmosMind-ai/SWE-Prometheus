@@ -1,0 +1,92 @@
+diff --git a/tests_verify/test_characterization.py b/tests_verify/test_characterization.py
+new file mode 100644
+index 0000000..9ef7ba0
+--- /dev/null
++++ b/tests_verify/test_characterization.py
+@@ -0,0 +1,86 @@
++import sys
++from pathlib import Path
++
++import pytest
++
++
++TOOLS_DIR = (
++    Path(__file__).resolve().parents[1]
++    / ".opencode"
++    / "skills"
++    / "fiction-distiller"
++    / "tools"
++)
++sys.path.insert(0, str(TOOLS_DIR))
++
++import originality_checker
++
++
++def test_count_chinese_chars_counts_only_cjk_characters():
++    text = "甲乙，abc123。かなカナ！"
++    assert originality_checker.count_chinese_chars(text) == 2
++    assert originality_checker.count_chinese_chars("") == 0
++
++
++def test_clean_text_removes_front_matter_punctuation_and_whitespace():
++    text = "---\ntitle: 示例\n---\n甲，乙！ A-1_under"
++    assert originality_checker.clean_text(text) == "甲乙A1under"
++
++    text_without_front_matter = " 甲，乙！ A-1_under "
++    assert originality_checker.clean_text(text_without_front_matter) == "甲乙A1under"
++
++
++def test_get_ngrams_preserves_order_and_duplicates():
++    assert originality_checker.get_ngrams("ababa", 2) == [
++        "ab",
++        "ba",
++        "ab",
++        "ba",
++    ]
++    assert originality_checker.get_ngrams("ab", 3) == []
++
++
++def test_ngram_overlap_reports_unique_matches_and_first_positions():
++    count, ratio, overlaps, positions = originality_checker.ngram_overlap(
++        "abcabc",
++        "xabcabcy",
++        3,
++    )
++
++    assert count == 3
++    assert ratio == pytest.approx(0.6)
++    assert overlaps == {"abc", "bca", "cab"}
++    assert sorted(positions) == [(1, "abc"), (2, "bca"), (3, "cab")]
++
++
++def test_ngram_overlap_with_text_shorter_than_ngram_size():
++    result = originality_checker.ngram_overlap("abcdef", "xy", 3)
++    assert result == (0, 0, [], [])
++
++
++def test_longest_common_substring_returns_match_length_and_end_positions():
++    assert originality_checker.longest_common_substring(
++        "abXYZcd",
++        "12XYZ34",
++    ) == ("XYZ", 3, 5, 5)
++
++    assert originality_checker.longest_common_substring("", "abc") == (
++        "",
++        0,
++        -1,
++        -1,
++    )
++
++
++@pytest.mark.parametrize(
++    ("fragment", "expected"),
++    [
++        ("甲乙丙", True),
++        ("看了一眼", True),
++        ("不知道为什么", True),
++        ("的是了在", True),
++        ("春风吹来", False),
++    ],
++)
++def test_common_phrase_classification(fragment, expected):
++    assert originality_checker.is_common_phrase(fragment) is expected

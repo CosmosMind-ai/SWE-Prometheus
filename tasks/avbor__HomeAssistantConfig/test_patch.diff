@@ -1,0 +1,35 @@
+diff --git a/tests_verify/test_characterization.py b/tests_verify/test_characterization.py
+new file mode 100644
+index 00000000..8784bd6b
+--- /dev/null
++++ b/tests_verify/test_characterization.py
+@@ -0,0 +1,29 @@
++import importlib
++import importlib.util
++
++import pytest
++
++
++PUBLIC_INTEGRATION_MODULES = (
++    "custom_components.auto_backup",
++    "custom_components.bodymiscale",
++    "custom_components.frigate",
++    "custom_components.hacs",
++    "custom_components.lkcomu_interrao",
++    "custom_components.openplantbook",
++    "custom_components.plant",
++    "custom_components.remote_homeassistant",
++    "custom_components.sonoff",
++    "custom_components.spook",
++)
++
++
++def test_custom_components_namespace_is_importable():
++    module = importlib.import_module("custom_components")
++
++    assert module.__name__ == "custom_components"
++
++
++@pytest.mark.parametrize("module_name", PUBLIC_INTEGRATION_MODULES)
++def test_public_integration_module_is_discoverable(module_name):
++    assert importlib.util.find_spec(module_name) is not None

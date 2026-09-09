@@ -1,0 +1,142 @@
+diff --git a/tests_verify/test_characterization.py b/tests_verify/test_characterization.py
+new file mode 100644
+index 0000000..d92b562
+--- /dev/null
++++ b/tests_verify/test_characterization.py
+@@ -0,0 +1,136 @@
++import importlib
++import json
++import sys
++
++import pytest
++
++
++sys.dont_write_bytecode = True
++
++profile_store = importlib.import_module(
++    "skills.user-profile-keeper.scripts.profile_store"
++)
++
++
++@pytest.mark.parametrize(
++    ("value", "expected"),
++    [
++        (None, "default"),
++        ("", "default"),
++        ("alice", "alice"),
++        (" alice ", "alice"),
++        ("\talice\n", "alice"),
++        ("user.name", "user.name"),
++        ("user_name", "user_name"),
++        ("user-name", "user-name"),
++        (".alice", ".alice"),
++        ("alice.", "alice."),
++        ("123", "123"),
++    ],
++)
++def test_safe_user_id_normalizes_supported_identifiers(value, expected):
++    assert profile_store.safe_user_id(value) == expected
++
++
++@pytest.mark.parametrize(
++    "value",
++    [
++        " ",
++        ".",
++        "..",
++        "a/b",
++        "a\\b",
++        "a b",
++        "a!",
++        "用户",
++    ],
++)
++def test_safe_user_id_rejects_unsupported_identifiers(value, capsys):
++    with pytest.raises(SystemExit) as exc_info:
++        profile_store.safe_user_id(value)
++
++    assert exc_info.value.code == 2
++    payload = json.loads(capsys.readouterr().out)
++    assert payload["ok"] is False
++    assert isinstance(payload["error"], str)
++    assert payload["error"]
++
++
++def test_dump_json_returns_compact_sorted_unicode_json():
++    value = {"b": [2, 1], "a": "雪"}
++
++    assert profile_store.dump_json(value) == '{"a":"雪","b":[2,1]}'
++
++
++def test_dump_json_serializes_none_and_booleans():
++    assert profile_store.dump_json(
++        {"truth": True, "falsehood": False, "missing": None}
++    ) == '{"falsehood":false,"missing":null,"truth":true}'
++
++
++def test_dump_json_rejects_non_json_serializable_values():
++    with pytest.raises(TypeError):
++        profile_store.dump_json({"values": {1, 2}})
++
++
++def test_print_json_emits_parseable_json(capsys):
++    profile_store.print_json({"z": 1, "message": "雪"})
++
++    assert json.loads(capsys.readouterr().out) == {"message": "雪", "z": 1}
++
++
++def test_fail_emits_error_payload_and_raises_requested_exit_code(capsys):
++    with pytest.raises(SystemExit) as exc_info:
++        profile_store.fail("sample failure", code=7)
++
++    assert exc_info.value.code == 7
++    assert json.loads(capsys.readouterr().out) == {
++        "error": "sample failure",
++        "ok": False,
++    }
++
++
++def test_fail_uses_exit_code_two_by_default(capsys):
++    with pytest.raises(SystemExit) as exc_info:
++        profile_store.fail("sample failure")
++
++    assert exc_info.value.code == 2
++    capsys.readouterr()
++
++
++def test_ensure_private_dir_creates_nested_directory(tmp_path):
++    target = tmp_path / "nested" / "profile"
++
++    result = profile_store.ensure_private_dir(target)
++
++    assert result is None
++    assert target.is_dir()
++
++
++def test_ensure_private_dir_accepts_an_existing_directory(tmp_path):
++    target = tmp_path / "profile"
++    target.mkdir()
++
++    result = profile_store.ensure_private_dir(target)
++
++    assert result is None
++    assert target.is_dir()
++
++
++def test_ensure_private_file_preserves_existing_contents(tmp_path):
++    target = tmp_path / "profile.json"
++    target.write_text("existing content", encoding="utf-8")
++
++    result = profile_store.ensure_private_file(target)
++
++    assert result is None
++    assert target.read_text(encoding="utf-8") == "existing content"
++
++
++def test_ensure_private_file_does_not_create_a_missing_file(tmp_path):
++    target = tmp_path / "missing.json"
++
++    result = profile_store.ensure_private_file(target)
++
++    assert result is None
++    assert not target.exists()
